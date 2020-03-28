@@ -14,7 +14,8 @@ export interface Hit {
   downloadsLast30Days: number;
   humanDownloadsLast30Days: string;
   popular: boolean;
-  description: string;
+  modified: number;
+  description: string | null;
   keywords: string[];
   types: Types;
   objectID: string;
