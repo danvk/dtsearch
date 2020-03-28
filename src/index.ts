@@ -17,7 +17,7 @@ function formatResult(result: Hit) {
     result.humanDownloadsLast30Days,
     types.ts === 'included' ? 'included' : (types.definitelyTyped || '???'),
     result.objectID,
-    result.description,
+    result.description.slice(0, 80),
   ];
 }
 
