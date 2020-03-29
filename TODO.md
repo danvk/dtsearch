@@ -8,5 +8,5 @@
   - [ ] -y/--yarn and -n/--npm
   - [ ] Number of results
 - [ ] Nits
-  - [ ] Unescape html entities (dateformat / &#39;)
-  - [ ] Refactor columns + formatting
+  - [x] Unescape html entities (dateformat / &#39;)
+  - [x] Refactor columns + formatting

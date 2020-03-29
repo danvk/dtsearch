@@ -1,3 +1,4 @@
+import {decode} from 'he';
 import _ from 'lodash';
 import moment from 'moment';
 import fetch from 'node-fetch';
@@ -66,7 +67,7 @@ const columns: Column[] = [
   },
   {
     header: 'description',
-    format: h => h.description || '',
+    format: h => decode(h.description || ''),
     maxWidth: 60,
     importance: 25,
   },
@@ -112,7 +113,7 @@ function printTable(rows: string[][]) {
   ] : null)).filter(isNonNull);
   const formattedCols = cols.map((c, j) => formatColumn(c, columns[j]));
 
-  for (let i = 0; i < rows.length; i++) {
+  for (let i = 0; i <= rows.length; i++) {
     const cols = formattedCols.map(c => c[i]);
     console.log(cols.join(' '));
   }
