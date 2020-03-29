@@ -47,13 +47,14 @@ export interface SearchInternal {
 }
 
 export interface Description {
+  /** Looks like "foo <em>bar</em> baz <em>quux</em>" */
   value: string;
   matchLevel: MatchLevel;
   matchedWords: string[];
   fullyHighlighted?: boolean;
 }
 
-export type MatchLevel = "full" | "none";
+export type MatchLevel = "full" | "partial" | "none";
 
 export interface Owner {
   name: Description;

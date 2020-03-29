@@ -1,10 +1,11 @@
+import chalk from 'chalk';
 import {program} from 'commander';
 import {decode} from 'he';
 import solver from 'javascript-lp-solver/src/solver';
 import _ from 'lodash';
 import moment from 'moment';
 import fetch from 'node-fetch';
-import { AlgoliaResponse, Hit } from './response';
+import { AlgoliaResponse, Hit, Description } from './response';
 
 const version = require('../package.json').version;
 
@@ -52,6 +53,7 @@ interface Column {
   align?: 'left' | 'right';
   maxWidth?: number;
   format: (hit: Hit) => string;
+  highlight?: (value: string, hit: Hit) => string;
   importance: number;
   mutexGroup?: string;
 }
@@ -71,6 +73,7 @@ const columns: Column[] = [
   {
     header: 'name',
     format: h => h.objectID,
+    highlight: (v, h) => highlightValue(v, h._highlightResult.name),
     importance: 100,
   },
   {
@@ -98,6 +101,7 @@ const columns: Column[] = [
   {
     header: 'description',
     format: h => decode(h.description || ''),
+    highlight: (v, h) => highlightValue(v, h._highlightResult.description),
     maxWidth: 40,
     importance: 25,
     mutexGroup: 'desc',
@@ -105,6 +109,7 @@ const columns: Column[] = [
   {
     header: 'description',
     format: h => decode(h.description || ''),
+    highlight: (v, h) => highlightValue(v, h._highlightResult.description),
     maxWidth: 60,
     importance: 30,
     mutexGroup: 'desc',
@@ -112,6 +117,7 @@ const columns: Column[] = [
   {
     header: 'description',
     format: h => decode(h.description || ''),
+    highlight: (v, h) => highlightValue(v, h._highlightResult.description),
     importance: 35,
     mutexGroup: 'desc',
   },
@@ -149,16 +155,17 @@ function makeInstallCommand(cmd: string, {types, objectID}: Hit): string {
 
 function pickColumns(widths: number[]): number[] {
   const mutexGroups = new Set(columns.map(c => c.mutexGroup).filter(isNonNullish));
-  const constraints = {width: {max: 1 + (process.stdout.columns || 80)}};
+  const constraints: solver.Model['constraints'] = {width: {max: 1 + (process.stdout.columns || 80)}};
   const mutexes = [...mutexGroups.keys()];
   for (const mutex of mutexes) {
-    (constraints as any)[mutex] = {max: 1};
+    constraints[mutex] = {max: 1};
   }
   columns.forEach((c, i) => {
+    // name is included here just for debugging.
     (constraints as any)[i] = {max: 1, name: c.header + (c.maxWidth ? '/' + c.maxWidth : '')};
   });
 
-  const model = {
+  const model: solver.Model = {
     opType: 'max',
     optimize: 'importance',
     constraints,
@@ -203,6 +210,25 @@ function formatColumn(vals: string[], spec: Column) {
   });
 }
 
+function highlightValue(val: string, highlightResult: Description | null) {
+  if (!highlightResult || highlightResult.matchLevel === 'none') {
+    return val;
+  } else if (highlightResult.fullyHighlighted) {
+    return chalk.bold(val);
+  }
+  for (const word of highlightResult.matchedWords) {
+    val = val.replace(new RegExp(word, 'ig'), chalk.bold(word));
+  }
+  return val;
+
+  // Alternatively, this could use highlightResult.value.
+  // The problem there is that string padding has already happened.
+  // 'Foo <em>bar</em> baz <em>quux</em>' -->
+  // [ 'Foo ', '<em>bar', ' baz ', '<em>quux', '' ]
+  // const parts = highlightResult.value.split(/(<em>.*?)<\/em>/);
+  // return parts.map(p => p.startsWith('<em>') ? chalk.bold(p.slice(4)) : p).join('');
+}
+
 function isNonNullish<T>(x: T | null | undefined): x is T {
   return x !== null && x !== undefined;
 }
@@ -211,14 +237,22 @@ function tuple<T extends any[]>(...t: T): T {
   return t;
 }
 
-function printTable(rows: string[][]) {
+function printTable(rows: string[][], hits: Hit[]) {
   const cols = columns.map((c, j) => [
     c.header.toUpperCase(), ...rows.map(r => r[j])
   ]);
   const formattedCols = cols.map((c, j) => formatColumn(c, columns[j]));
   const widths = formattedCols.map(c => c[0].length);
   const colIndices = pickColumns(widths);
-  const pickedCols = colIndices.map(i => formattedCols[i]);
+  const pickedCols = colIndices.map(i => {
+    const spec = columns[i];
+    const {highlight} = spec;
+    if (!highlight) {
+      return formattedCols[i];
+    } else {
+      return formattedCols[i].map((v, j) => j > 0 ? highlight(v, hits[j - 1]) : v)
+    }
+  });
 
   for (let i = 0; i <= rows.length; i++) {
     const cols = pickedCols.map(c => c[i]);
@@ -302,9 +336,9 @@ function applyFlags() {
   }
 
   const result: AlgoliaResponse = await response.json();
-  const hits = result.hits.filter(hit => !hit.objectID.startsWith('@types/'));
+  let hits = result.hits.filter(hit => !hit.objectID.startsWith('@types/'));
   if (hits.length === 0) {
-    console.log('No results');
+    console.log('No results. Try dtsearch -u to include packages without types.');
     return;
   }
 
@@ -313,8 +347,16 @@ function applyFlags() {
     console.log(result);
   }
 
-  const table = hits.slice(0, num).map(formatResult);
-  printTable(table);
+  hits = hits.slice(0, num);
+  const table = hits.map(formatResult);
+  printTable(table, hits);
+
+  if (hits.length < num) {
+    console.log(
+      `\nOnly ${hits.length} result${hits.length > 1 ? 's' : ''}. ` +
+      `Try dtsearch -u to include packages without types.`
+    );
+  }
 })().catch(e => {
   console.error(e);
 });
