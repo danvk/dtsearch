@@ -73,7 +73,7 @@ This uses Algolia's [npm search][2], the same search that you find on [yarnpkg].
 
 ## Support
 
-If you like this tool, consider buying my book, [_Effective TypeScript_][ets]. [Chapter 6] and particularly Item 46 ("Understand the Three Versions Involved in Type Declarations") are all about the trials and tribulations of getting TypeScript types for your dependencies.
+<img src="https://effectivetypescript.com/images/cover.jpg" height="75" style="float: right;">If you like this tool, consider buying a copy of my book, [_Effective TypeScript_][ets]. [Chapter 6] and particularly Item 46 ("Understand the Three Versions Involved in Type Declarations") are all about the trials and tribulations of getting TypeScript types for your dependencies.
 
 [DefinitelyTyped]: https://github.com/DefinitelyTyped/DefinitelyTyped
 [2]: https://discourse.algolia.com/t/2016-algolia-community-gift-yarn-package-search/319
