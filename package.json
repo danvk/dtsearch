@@ -15,6 +15,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "commander": "^5.0.0",
     "he": "^1.2.0",
     "javascript-lp-solver": "^0.4.24",
     "lodash": "^4.17.15",

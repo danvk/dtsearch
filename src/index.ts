@@ -1,9 +1,21 @@
+import {program} from 'commander';
 import {decode} from 'he';
 import solver from 'javascript-lp-solver/src/solver';
 import _ from 'lodash';
 import moment from 'moment';
 import fetch from 'node-fetch';
 import { AlgoliaResponse, Hit } from './response';
+
+const version = require('../package.json').version;
+
+program
+  .version(version)
+  .arguments('<query>')
+  .option('--npm', 'Output npm install commands')
+  .option('-y, --yarn', 'Output yarn add commands')
+  .option('-n, --num <number>', 'Maximum number of results to show', Number, 10)
+  .option('--debug', 'Enable debug logging')
+  .parse(process.argv);
 
 const SEARCH_ENDPOINT = 'https://ofcncog2cu-dsn.algolia.net/1/indexes/npm-search'
 const ATTRIBUTES = [
@@ -65,6 +77,16 @@ const columns: Column[] = [
     mutexGroup: 'types',
   },
   {
+    header: 'npm',
+    format: h => makeInstallCommand('npm install', h),
+    importance: -1,
+  },
+  {
+    header: 'yarn',
+    format: h => makeInstallCommand('yarn add', h),
+    importance: -1,
+  },
+  {
     header: 'description',
     format: h => decode(h.description || ''),
     maxWidth: 40,
@@ -101,6 +123,16 @@ const columns: Column[] = [
     importance: 10,
   },
 ];
+
+function makeInstallCommand(cmd: string, {types, objectID}: Hit): string {
+  const install = `${cmd} ${objectID}`;
+  if (types.ts === 'included') {
+    return install;
+  } else if (types.ts === 'definitely-typed') {
+    return `${install} && ${cmd} -D ${types.definitelyTyped}`;
+  }
+  return '';
+}
 
 function pickColumns(widths: number[]): number[] {
   const mutexGroups = new Set(columns.map(c => c.mutexGroup).filter(isNonNullish));
@@ -174,8 +206,36 @@ function printTable(rows: string[][]) {
   }
 }
 
+function adjustImportance(header: string, newImportance: number) {
+  let adjusted = false;
+  for (const col of columns) {
+    if (col.header === header) {
+      col.importance = newImportance;
+      adjusted = true;
+    }
+  }
+  if (!adjusted) {
+    throw new Error(`Unable to find column with header ${header}`);
+  }
+}
+
 (async () => {
-  const [, , query] = process.argv;
+  const query = program.args.join(' ');
+
+  // Add special coluns if the user asks for them.
+  if (program.yarn) {
+    adjustImportance('yarn', 1000);
+  }
+  if (program.npm) {
+    adjustImportance('npm', 1000);
+  }
+  if (program.yarn || program.npm) {
+    adjustImportance('types', 25);
+  }
+
+  // Overfetch a bit in case there are @types results.
+  const {num} = program;
+  PARAMS.hitsPerPage = Math.floor(num * 1.5);
 
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(PARAMS)) {
@@ -191,7 +251,12 @@ function printTable(rows: string[][]) {
 
   const result: AlgoliaResponse = await response.json();
   const hits = result.hits.filter(hit => !hit.objectID.startsWith('@types/'));
-  const table = hits.slice(0, 10).map(formatResult);
+  if (hits.length === 0) {
+    console.log('No results');
+    return;
+  }
+
+  const table = hits.slice(0, num).map(formatResult);
   printTable(table);
 })().catch(e => {
   console.error(e);

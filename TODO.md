@@ -14,6 +14,7 @@
   - [x] Unescape html entities (dateformat / &#39;)
   - [x] Refactor columns + formatting
   - [ ] Only use the flame character if the terminal supports it
+  - [ ] Count emojis as double-wide for width (dtsearch --num 20 solar)
   - [ ] Add a "no results" output
 
 - [ ] Get my own Algolia API key (they only offer a 14 day free trial)
