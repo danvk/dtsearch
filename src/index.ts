@@ -124,7 +124,6 @@ const columns: Column[] = [
     header: 'updated',
     format: h => moment(h.modified).fromNow(),
     importance: 5,
-    align: 'right',
   },
   {
     header: 'homepage',
