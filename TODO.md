@@ -1,9 +1,11 @@
 - [x] Show GitHub repo if homepage is missing
-- [ ] Fill width of terminal
+- [x] Fill width of terminal
+- [x] Add a binary
 - [ ] Highlight matching terms
-- [ ] Get my own Algolia API key
-- [ ] Add a binary
 - [ ] Distribute it
+  - [x] Check on the name (dtsearch is good)
+  - [ ] Put it on GitHub
+  - [ ] Fill out the readme
 - [ ] Flag parsing
   - [ ] -y/--yarn and -n/--npm
   - [ ] Number of results
@@ -13,3 +15,5 @@
   - [x] Refactor columns + formatting
   - [ ] Only use the flame character if the terminal supports it
   - [ ] Add a "no results" output
+
+- [ ] Get my own Algolia API key (they only offer a 14 day free trial)

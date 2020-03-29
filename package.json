@@ -1,10 +1,13 @@
 {
   "name": "dtsearch",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Search for npm packages with types, either on Definitely Typed or bundled.",
   "main": "dist/index.js",
   "author": "Dan Vanderkam (danvdk@gmail.com)",
   "license": "MIT",
+  "bin": {
+    "dtsearch": "./dist/index.js"
+  },
   "devDependencies": {
     "@types/he": "^1.1.1",
     "@types/lodash": "^4.14.149",
