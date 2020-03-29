@@ -1,7 +1,14 @@
 {
   "name": "dtsearch",
-  "version": "0.1.2",
-  "description": "Search for npm packages with types, either on Definitely Typed or bundled.",
+  "version": "1.0.0",
+  "description": "Find packages with TypeScript types, either bundled or on Definitely Typed",
+  "keywords": [
+    "definitelytyped",
+    "typescript",
+    "dts",
+    "types",
+    "search"
+  ],
   "main": "dist/index.js",
   "author": "Dan Vanderkam (danvdk@gmail.com)",
   "license": "MIT",
