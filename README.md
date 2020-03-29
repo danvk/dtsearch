@@ -32,18 +32,18 @@ You can use `--yarn` or `--npm` to produce copy/pastable commands to depend on p
 
 There are two ways to distribute TypeScript types for a package on npm:
 
-1. With the package itself ("bundled" or "included"). This is common if the package is written in TypeScript, or if the owner is committed to maintaining its type declarations. The tell-tale sign of bundled typings is a `typings` entry in `package.json`.
+1. With the package itself ("bundled" or "included"). This is common if the package is written in TypeScript, or if the owner is committed to maintaining its type declarations. The tell-tale sign of bundled types is a `typings` entry in `package.json`.
 2. As a separate `@types` package on [DefinitelyTyped]. This is more common for packages which are written in plain JavaScript or another language. The type declarations are often written by someone other than the package author.
 
 Both approaches are common and there are many tradeoffs between them.
 
-As a TypeScript user, you'll often find yourself wanting to search for a package that does X and has type declarations of either form. The usual approach is to search for packages and then check if they have type declarations (<yarnpkg.com> has recently added TypeScript badges which help with this).
+As a TypeScript user, you'll often find yourself wanting to search for a package that does X and has type declarations (of either form). The usual approach is to search for packages and then check if they have type declarations ([yarnpkg] has recently added TypeScript badges which help with this).
 
 Once you've found a package, you need to run different commands depending on whether it bundles its types or gets them from DefinitelyTyped. For example, using `yarn` and [`moment`][moment]:
 
-    yarn add moment  # bundled
+    yarn add moment  # bundled types
 
-    # DefinitelyTyped
+    # Types on DefinitelyTyped
     yarn add moment-timezone
     yarn add -D @types/moment-timzeone
 
@@ -51,7 +51,7 @@ Once you've found a package, you need to run different commands depending on whe
 
 ## How this works
 
-This uses Algolia's [npm search][2], the same search that you find on <yarnpkg.com>.
+This uses Algolia's [npm search][2], the same search that you find on [yarnpkg].
 
 ## Options
 
@@ -64,6 +64,22 @@ This uses Algolia's [npm search][2], the same search that you find on <yarnpkg.c
 - `--repo` Show repo URLs, even if package specifies a homepage
 - `--debug` Enable debug logging
 
+## Related Work
+
+- The old [`typings search`](https://yarnpkg.com/package/typings) command from c. 2016 (before `@types`).
+- Microsoft's [TypeSearch](https://microsoft.github.io/TypeSearch/). Unfortunately this only searches DefinitelyTyped and only searches package names. It does not search bundled types or package descriptions.
+- [yarnpkg]'s search. This shows small "TS" icons next to packages with type declarations, either bundled or on DT. It does not surface a filter to search only packages with type declarations, however.
+- [pikapkg] lets you search packages with a [`has:types`][pikasearch] filter. This only searches bundled typings; it does not consider types on DT.
+
+## Support
+
+If you like this tool, consider buying my book, [_Effective TypeScript_][ets]. [Chapter 6] and particularly Item 46 ("Understand the Three Versions Involved in Type Declarations") are all about the trials and tribulations of getting TypeScript types for your dependencies.
+
 [DefinitelyTyped]: https://github.com/DefinitelyTyped/DefinitelyTyped
 [2]: https://discourse.algolia.com/t/2016-algolia-community-gift-yarn-package-search/319
 [moment]: https://momentjs.com/
+[yarnpkg]: https://yarnpkg.com/
+[pikapkg]: https://www.pika.dev/
+[pikasearch]: https://www.pika.dev/search?q=has%3Atypes%20moment
+[ets]: https://effectivetypescript.com/
+[Chapter 6]: https://effectivetypescript.com/#Chapter-6-Types-Declarations-and-types
