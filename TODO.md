@@ -7,14 +7,14 @@
   - [ ] Put it on GitHub
   - [ ] Fill out the readme
 - [ ] Flag parsing
-  - [ ] -y/--yarn and -n/--npm
-  - [ ] Number of results
+  - [x] -y/--yarn and -n/--npm
+  - [x] Number of results
   - [ ] Allow results w/o types
 - [ ] Nits
-  - [x] Unescape html entities (dateformat / &#39;)
-  - [x] Refactor columns + formatting
   - [ ] Only use the flame character if the terminal supports it
   - [ ] Count emojis as double-wide for width (dtsearch --num 20 solar)
-  - [ ] Add a "no results" output
+  - [x] Unescape html entities (dateformat / &#39;)
+  - [x] Refactor columns + formatting
+  - [x] Add a "no results" output
 
 - [ ] Get my own Algolia API key (they only offer a 14 day free trial)

@@ -16,6 +16,9 @@ program
   .option('-n, --num <number>', 'Maximum number of results to show', Number, 10)
   .option('--repo', 'Show repo URL, even if package specifies a homepage')
   .option('--debug', 'Enable debug logging')
+  .option('--bundled', 'Only show packages with bundled types')
+  .option('--dt', 'Only show packages with types on DefinitelyTyped (@types)')
+  .option('-u, --untyped', 'Search all packages, even those without type declarations.')
   .parse(process.argv);
 
 const SEARCH_ENDPOINT = 'https://ofcncog2cu-dsn.algolia.net/1/indexes/npm-search'
@@ -30,9 +33,14 @@ const ATTRIBUTES = [
   'homepage',
   'repository',
 ];
+const filters = {
+  default: 'types.ts:"definitely-typed" OR types.ts:"included"',
+  dt: 'types.ts:"definitely-typed"',
+  bundled: 'types.ts:"included"',
+};
 const PARAMS = {
   hitsPerPage: 20,
-  filters: 'types.ts:"definitely-typed" OR types.ts:"included"',
+  filters: filters.default,
   attributes: ATTRIBUTES.join(','),
   'x-algolia-agent': 'Algolia for vanilla JavaScript (lite) 3.27.1',
   'x-algolia-application-id': 'OFCNCOG2CU',
@@ -232,9 +240,7 @@ function adjustImportance(header: string, newImportance: number) {
   }
 }
 
-(async () => {
-  const query = program.args.join(' ');
-
+function applyFlags() {
   // Add special coluns if the user asks for them.
   if (program.yarn) {
     adjustImportance('yarn', 1000);
@@ -249,6 +255,25 @@ function adjustImportance(header: string, newImportance: number) {
     adjustImportance('repo', 1000);
     adjustImportance('homepage', -1);
   }
+
+  const flags = ['untyped', 'dt', 'bundled'];
+  if (_.sum(flags.map(flag => program[flag] ? 1 : 0)) > 1) {
+    throw new Error(`May only specify one of ${flags}`);
+  }
+
+  if (program.untyped) {
+    delete PARAMS.filters;
+  } else if (program.dt) {
+    PARAMS.filters = filters.dt;
+  } else if (program.bundled) {
+    PARAMS.filters = filters.bundled;
+  }
+}
+
+(async () => {
+  const query = program.args.join(' ');
+
+  applyFlags();
 
   // Overfetch a bit in case there are @types results.
   const {num} = program;
