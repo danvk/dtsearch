@@ -10,6 +10,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "moment": "^2.24.0",
     "node-fetch": "^2.6.0",
     "printj": "^1.2.2"
   }

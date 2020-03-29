@@ -19,7 +19,18 @@ export interface Hit {
   keywords: string[];
   types: Types;
   objectID: string;
+  homepage: string | null;
+  repository: Repository;
   _highlightResult: HighlightResult;
+}
+
+export interface Repository {
+  url: string;
+  project: string;
+  user: string;
+  host: string;
+  path: string;
+  branch: string;
 }
 
 export interface HighlightResult {

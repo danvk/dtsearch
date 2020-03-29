@@ -1,12 +1,24 @@
+import moment from 'moment';
 import fetch from 'node-fetch';
 import {sprintf} from 'printj';
 import { AlgoliaResponse, Hit } from './response';
 
 const SEARCH_ENDPOINT = 'https://ofcncog2cu-dsn.algolia.net/1/indexes/npm-search'
+const ATTRIBUTES = [
+  'types',
+  'downloadsLast30Days',
+  'humanDownloadsLast30Days',
+  'popular',
+  'keywords',
+  'description',
+  'modified',
+  'homepage',
+  'repository',
+];
 const PARAMS = {
   hitsPerPage: 20,
   filters: 'types.ts:"definitely-typed" OR types.ts:"included"',
-  attributes: 'types,downloadsLast30Days,humanDownloadsLast30Days,popular,keywords,description,modified',
+  attributes: ATTRIBUTES.join(','),
   'x-algolia-agent': 'Algolia for vanilla JavaScript (lite) 3.27.1',
   'x-algolia-application-id': 'OFCNCOG2CU',
   'x-algolia-api-key': 'f54e21fa3a2a0160595bb058179bfb1e',
@@ -18,7 +30,8 @@ const HEADER = [
   'NAME',
   'TYPES',
   'DESCRIPTION',
-  'DATE',
+  'UPDATED',
+  'HOMEPAGE',
 ];
 
 function formatResult(result: Hit) {
@@ -27,13 +40,17 @@ function formatResult(result: Hit) {
   const y = date.getUTCFullYear();
   const m = date.getUTCMonth();
   const d = date.getUTCDate();
+  const mom = moment(modified);
+  const relative = mom.fromNow();
+
   return [
     result.humanDownloadsLast30Days,
     result.popular ? '🔥' : '',
     result.objectID,
-    types.ts === 'included' ? 'included' : (types.definitelyTyped || '???'),
-    (result.description || '').slice(0, 80),
-    sprintf('%04d-%02d-%02d', y, m + 1, d),
+    types.ts === 'included' ? '<bundled>' : (types.definitelyTyped || '???'),
+    (result.description || '').slice(0, 60),
+    relative, // sprintf('%04d-%02d-%02d', y, m + 1, d),
+    result.homepage || result.repository.url,
   ];
 }
 
