@@ -61,27 +61,27 @@ const columns: Column[] = [
   {
     header: 'types',
     format: ({types}) => types.ts === 'included' ? '<inc>' : (types.ts === 'definitely-typed' ? 'dt' : ''),
-    importance: 90,
+    importance: 80,
     mutexGroup: 'types',
   },
   {
     header: 'description',
     format: h => decode(h.description || ''),
     maxWidth: 40,
-    importance: 23,
+    importance: 25,
     mutexGroup: 'desc',
   },
   {
     header: 'description',
     format: h => decode(h.description || ''),
     maxWidth: 60,
-    importance: 24,
+    importance: 30,
     mutexGroup: 'desc',
   },
   {
     header: 'description',
     format: h => decode(h.description || ''),
-    importance: 25,
+    importance: 35,
     mutexGroup: 'desc',
   },
   {
