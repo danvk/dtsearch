@@ -14,6 +14,7 @@ program
   .option('--npm', 'Output npm install commands')
   .option('-y, --yarn', 'Output yarn add commands')
   .option('-n, --num <number>', 'Maximum number of results to show', Number, 10)
+  .option('--repo', 'Show repo URL, even if package specifies a homepage')
   .option('--debug', 'Enable debug logging')
   .parse(process.argv);
 
@@ -107,21 +108,26 @@ const columns: Column[] = [
     mutexGroup: 'desc',
   },
   {
+    header: 'date',
+    format: h => moment(h.modified).format('YYYY-MM-DD'),
+    importance: 1,
+  },
+  {
     header: 'updated',
     format: h => moment(h.modified).fromNow(),
     importance: 5,
     align: 'right',
   },
   {
-    header: 'date',
-    format: h => moment(h.modified).format('YYYY-MM-DD'),
-    importance: 1,
-  },
-  {
     header: 'homepage',
     format: h => h.homepage || (h.repository ? h.repository.url : ''),
     importance: 10,
   },
+  {
+    header: 'repo',
+    format: h => h.repository ? h.repository.url : '',
+    importance: -1,
+  }
 ];
 
 function makeInstallCommand(cmd: string, {types, objectID}: Hit): string {
@@ -142,7 +148,7 @@ function pickColumns(widths: number[]): number[] {
     (constraints as any)[mutex] = {max: 1};
   }
   columns.forEach((c, i) => {
-    (constraints as any)[i] = {max: 1};
+    (constraints as any)[i] = {max: 1, name: c.header + (c.maxWidth ? '/' + c.maxWidth : '')};
   });
 
   const model = {
@@ -161,7 +167,14 @@ function pickColumns(widths: number[]): number[] {
     ints: columns.map((c, i) => '' + i),
   };
 
+  if (program.debug) {
+    console.log('Column LP model:', model);
+  }
+
   const result = solver.Solve(model);
+  if (program.debug) {
+    console.log('LP result:', result);
+  }
   if (result.feasible) {
     return columns.map((c, i) => result[i] ? i : null).filter(isNonNullish);
   }
@@ -232,6 +245,10 @@ function adjustImportance(header: string, newImportance: number) {
   if (program.yarn || program.npm) {
     adjustImportance('types', 25);
   }
+  if (program.repo) {
+    adjustImportance('repo', 1000);
+    adjustImportance('homepage', -1);
+  }
 
   // Overfetch a bit in case there are @types results.
   const {num} = program;
@@ -243,10 +260,21 @@ function adjustImportance(header: string, newImportance: number) {
   }
   params.set('query', query);
   const qs = params.toString();
+  const url = `${SEARCH_ENDPOINT}?${qs}`;
 
-  const response = await fetch(`${SEARCH_ENDPOINT}?${qs}`);
+  if (program.debug) {
+    console.log('Algolia query params:', params);
+    console.log('Fetching', url);
+  }
+
+  const startMs = Date.now();
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
+  }
+  const elapsedMs = Date.now() - startMs;
+  if (program.debug) {
+    console.log('Algolia responded in', elapsedMs, 'ms');
   }
 
   const result: AlgoliaResponse = await response.json();
@@ -254,6 +282,11 @@ function adjustImportance(header: string, newImportance: number) {
   if (hits.length === 0) {
     console.log('No results');
     return;
+  }
+
+  if (program.debug) {
+    console.log(`Got ${result.hits.length} results, pared down to ${hits.length}`);
+    console.log(result);
   }
 
   const table = hits.slice(0, num).map(formatResult);
