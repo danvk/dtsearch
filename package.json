@@ -6,12 +6,13 @@
   "author": "Dan Vanderkam (danvdk@gmail.com)",
   "license": "MIT",
   "devDependencies": {
+    "@types/lodash": "^4.14.149",
     "@types/node-fetch": "^2.5.5",
     "typescript": "^3.8.3"
   },
   "dependencies": {
+    "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "node-fetch": "^2.6.0",
-    "printj": "^1.2.2"
+    "node-fetch": "^2.6.0"
   }
 }

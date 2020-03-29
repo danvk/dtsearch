@@ -2,9 +2,11 @@
 - [ ] Highlight matching terms
 - [ ] Fill width of terminal
 - [ ] Get my own Algolia API key
+- [ ] Add a binary
+- [ ] Distribute it
 - [ ] Flag parsing
   - [ ] -y/--yarn and -n/--npm
   - [ ] Number of results
 - [ ] Nits
   - [ ] Unescape html entities (dateformat / &#39;)
-  - [ ]
+  - [ ] Refactor columns + formatting

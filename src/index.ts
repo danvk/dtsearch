@@ -1,6 +1,6 @@
+import _ from 'lodash';
 import moment from 'moment';
 import fetch from 'node-fetch';
-import {sprintf} from 'printj';
 import { AlgoliaResponse, Hit } from './response';
 
 const SEARCH_ENDPOINT = 'https://ofcncog2cu-dsn.algolia.net/1/indexes/npm-search'
@@ -34,38 +34,86 @@ const HEADER = [
   'HOMEPAGE',
 ];
 
-function formatResult(result: Hit) {
-  const {types, modified} = result;
-  const date = new Date(modified);
-  const y = date.getUTCFullYear();
-  const m = date.getUTCMonth();
-  const d = date.getUTCDate();
-  const mom = moment(modified);
-  const relative = mom.fromNow();
+interface Column {
+  header: string;
+  align?: 'left' | 'right';
+  maxWidth?: number;
+  format: (hit: Hit) => string;
+  importance: number;
+}
 
-  return [
-    result.humanDownloadsLast30Days,
-    result.popular ? '🔥' : '',
-    result.objectID,
-    types.ts === 'included' ? '<bundled>' : (types.definitelyTyped || '???'),
-    (result.description || '').slice(0, 60),
-    relative, // sprintf('%04d-%02d-%02d', y, m + 1, d),
-    result.homepage || result.repository.url,
-  ];
+const columns: Column[] = [
+  {
+    header: 'DLs',
+    format: h => h.humanDownloadsLast30Days,
+    importance: 1,
+    align: 'right',
+  },
+  {
+    header: 'pop',
+    format: h => h.popular ? '🔥' : '',
+    importance: 1,
+  },
+  {
+    header: 'name',
+    format: h => h.objectID,
+    importance: 100,
+  },
+  {
+    header: 'types',
+    format: ({types}) => types.ts === 'included' ? '<bundled>' : (types.definitelyTyped || '???'),
+    importance: 100,
+  },
+  {
+    header: 'description',
+    format: h => h.description || '',
+    maxWidth: 60,
+    importance: 25,
+  },
+  {
+    header: 'updated',
+    format: h => moment(h.modified).fromNow(),
+    importance: 5,
+  },
+  {
+    header: 'date',
+    format: h => moment(h.modified).format('YYYY-MM-DD'),
+    importance: 0,
+  },
+  {
+    header: 'homepage',
+    format: h => h.homepage || h.repository.url,
+    importance: 10,
+  },
+];
+
+function formatResult(result: Hit) {
+  return columns.map(col => col.format(result));
+}
+
+function formatColumn(vals: string[], spec: Column) {
+  const {maxWidth, align} = spec;
+  const maxLen = _.max(vals.map(v => v.length))!;
+  const width = Math.min(maxLen, maxWidth || maxLen);
+
+  return vals.map(v => {
+    v = v.slice(0, width);
+    return align === 'right' ? v.padStart(width) : v.padEnd(width);
+  });
+}
+
+function isNonNull<T>(x: T | null): x is T {
+  return x !== null;
 }
 
 function printTable(rows: string[][]) {
-  const maxLen = new Array(rows[0].length);
-  rows[0].forEach((v, i) => maxLen[i] = v.length);
-  for (const row of rows.slice(1)) {
-    row.forEach((v, i) => maxLen[i] = Math.max(v.length, maxLen[i]))
-  }
+  const cols = columns.map((c, j) => (c.importance > 0 ? [
+    c.header.toUpperCase(), ...rows.map(r => r[j])
+  ] : null)).filter(isNonNull);
+  const formattedCols = cols.map((c, j) => formatColumn(c, columns[j]));
 
-  for (const row of rows) {
-    const cols = row.map((v, i) => {
-      const len = maxLen[i];
-      return i === 0 ? v.padStart(len) : v.padEnd(len);
-    });
+  for (let i = 0; i < rows.length; i++) {
+    const cols = formattedCols.map(c => c[i]);
     console.log(cols.join(' '));
   }
 }
@@ -87,8 +135,7 @@ function printTable(rows: string[][]) {
 
   const result: AlgoliaResponse = await response.json();
   const hits = result.hits.filter(hit => !hit.objectID.startsWith('@types/'));
-
-  const table = [HEADER, ...hits.slice(0, 10).map(formatResult)];
+  const table = hits.slice(0, 10).map(formatResult);
   printTable(table);
 })().catch(e => {
   console.error(e);
