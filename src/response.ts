@@ -59,7 +59,15 @@ export interface Owner {
   name: Description;
 }
 
-export interface Types {
-  ts: string;
-  definitelyTyped?: string;
+export interface TypesIncluded {
+  ts: 'included';
 }
+export interface TypesDT {
+  ts: 'definitely-typed',
+  definitelyTyped: string;
+}
+export interface TypesNone {
+  ts: false;
+}
+
+export type Types = TypesIncluded | TypesDT | TypesNone;

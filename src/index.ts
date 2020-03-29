@@ -54,8 +54,15 @@ const columns: Column[] = [
   },
   {
     header: 'types',
-    format: ({types}) => types.ts === 'included' ? '<bundled>' : (types.definitelyTyped || '???'),
+    format: ({types}) => types.ts === 'included' ? '<bundled>' : (types.ts === 'definitely-typed' ? types.definitelyTyped : ''),
     importance: 100,
+    mutexGroup: 'types',
+  },
+  {
+    header: 'types',
+    format: ({types}) => types.ts === 'included' ? '<inc>' : (types.ts === 'definitely-typed' ? 'dt' : ''),
+    importance: 90,
+    mutexGroup: 'types',
   },
   {
     header: 'description',
@@ -81,6 +88,7 @@ const columns: Column[] = [
     header: 'updated',
     format: h => moment(h.modified).fromNow(),
     importance: 5,
+    align: 'right',
   },
   {
     header: 'date',
@@ -96,7 +104,7 @@ const columns: Column[] = [
 
 function pickColumns(widths: number[]): number[] {
   const mutexGroups = new Set(columns.map(c => c.mutexGroup).filter(isNonNullish));
-  const constraints = {width: {max: process.stdout.columns || 80}};
+  const constraints = {width: {max: 1 + (process.stdout.columns || 80)}};
   const mutexes = [...mutexGroups.keys()];
   for (const mutex of mutexes) {
     (constraints as any)[mutex] = {max: 1};
@@ -113,7 +121,7 @@ function pickColumns(widths: number[]): number[] {
       '' + i,
       {
         importance: c.importance,
-        width: widths[i],
+        width: 1 + widths[i],
         [i]: 1,
         ..._.fromPairs(mutexes.map(m => tuple(m, c.mutexGroup === m ? 1 : 0))),
       }
