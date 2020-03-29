@@ -20,7 +20,7 @@ export interface Hit {
   types: Types;
   objectID: string;
   homepage: string | null;
-  repository: Repository;
+  repository: Repository | null;
   _highlightResult: HighlightResult;
 }
 

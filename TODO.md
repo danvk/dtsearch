@@ -1,12 +1,15 @@
 - [x] Show GitHub repo if homepage is missing
-- [ ] Highlight matching terms
 - [ ] Fill width of terminal
+- [ ] Highlight matching terms
 - [ ] Get my own Algolia API key
 - [ ] Add a binary
 - [ ] Distribute it
 - [ ] Flag parsing
   - [ ] -y/--yarn and -n/--npm
   - [ ] Number of results
+  - [ ] Allow results w/o types
 - [ ] Nits
   - [x] Unescape html entities (dateformat / &#39;)
   - [x] Refactor columns + formatting
+  - [ ] Only use the flame character if the terminal supports it
+  - [ ] Add a "no results" output

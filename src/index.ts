@@ -1,4 +1,5 @@
 import {decode} from 'he';
+import solver from 'javascript-lp-solver/src/solver';
 import _ from 'lodash';
 import moment from 'moment';
 import fetch from 'node-fetch';
@@ -25,35 +26,26 @@ const PARAMS = {
   'x-algolia-api-key': 'f54e21fa3a2a0160595bb058179bfb1e',
 };
 
-const HEADER = [
-  'DLS',
-  'POP',
-  'NAME',
-  'TYPES',
-  'DESCRIPTION',
-  'UPDATED',
-  'HOMEPAGE',
-];
-
 interface Column {
   header: string;
   align?: 'left' | 'right';
   maxWidth?: number;
   format: (hit: Hit) => string;
   importance: number;
+  mutexGroup?: string;
 }
 
 const columns: Column[] = [
   {
     header: 'DLs',
     format: h => h.humanDownloadsLast30Days,
-    importance: 1,
+    importance: 3,
     align: 'right',
   },
   {
     header: 'pop',
     format: h => h.popular ? '🔥' : '',
-    importance: 1,
+    importance: 2,
   },
   {
     header: 'name',
@@ -68,8 +60,22 @@ const columns: Column[] = [
   {
     header: 'description',
     format: h => decode(h.description || ''),
+    maxWidth: 40,
+    importance: 23,
+    mutexGroup: 'desc',
+  },
+  {
+    header: 'description',
+    format: h => decode(h.description || ''),
     maxWidth: 60,
+    importance: 24,
+    mutexGroup: 'desc',
+  },
+  {
+    header: 'description',
+    format: h => decode(h.description || ''),
     importance: 25,
+    mutexGroup: 'desc',
   },
   {
     header: 'updated',
@@ -79,14 +85,48 @@ const columns: Column[] = [
   {
     header: 'date',
     format: h => moment(h.modified).format('YYYY-MM-DD'),
-    importance: 0,
+    importance: 1,
   },
   {
     header: 'homepage',
-    format: h => h.homepage || h.repository.url,
+    format: h => h.homepage || (h.repository ? h.repository.url : ''),
     importance: 10,
   },
 ];
+
+function pickColumns(widths: number[]): number[] {
+  const mutexGroups = new Set(columns.map(c => c.mutexGroup).filter(isNonNullish));
+  const constraints = {width: {max: process.stdout.columns || 80}};
+  const mutexes = [...mutexGroups.keys()];
+  for (const mutex of mutexes) {
+    (constraints as any)[mutex] = {max: 1};
+  }
+  columns.forEach((c, i) => {
+    (constraints as any)[i] = {max: 1};
+  });
+
+  const model = {
+    opType: 'max',
+    optimize: 'importance',
+    constraints,
+    variables: _.fromPairs(columns.map((c, i) => tuple(
+      '' + i,
+      {
+        importance: c.importance,
+        width: widths[i],
+        [i]: 1,
+        ..._.fromPairs(mutexes.map(m => tuple(m, c.mutexGroup === m ? 1 : 0))),
+      }
+    ))),
+    ints: columns.map((c, i) => '' + i),
+  };
+
+  const result = solver.Solve(model);
+  if (result.feasible) {
+    return columns.map((c, i) => result[i] ? i : null).filter(isNonNullish);
+  }
+  return columns.map((c, i) => c.importance >= 25 ? i : null).filter(isNonNullish);
+}
 
 function formatResult(result: Hit) {
   return columns.map(col => col.format(result));
@@ -103,18 +143,25 @@ function formatColumn(vals: string[], spec: Column) {
   });
 }
 
-function isNonNull<T>(x: T | null): x is T {
-  return x !== null;
+function isNonNullish<T>(x: T | null | undefined): x is T {
+  return x !== null && x !== undefined;
+}
+
+function tuple<T extends any[]>(...t: T): T {
+  return t;
 }
 
 function printTable(rows: string[][]) {
-  const cols = columns.map((c, j) => (c.importance > 0 ? [
+  const cols = columns.map((c, j) => [
     c.header.toUpperCase(), ...rows.map(r => r[j])
-  ] : null)).filter(isNonNull);
+  ]);
   const formattedCols = cols.map((c, j) => formatColumn(c, columns[j]));
+  const widths = formattedCols.map(c => c[0].length);
+  const colIndices = pickColumns(widths);
+  const pickedCols = colIndices.map(i => formattedCols[i]);
 
   for (let i = 0; i <= rows.length; i++) {
-    const cols = formattedCols.map(c => c[i]);
+    const cols = pickedCols.map(c => c[i]);
     console.log(cols.join(' '));
   }
 }
