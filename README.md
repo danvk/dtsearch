@@ -70,6 +70,7 @@ This uses Algolia's [npm search][2], the same search that you find on [yarnpkg].
 - Microsoft's [TypeSearch](https://microsoft.github.io/TypeSearch/). Unfortunately this only searches DefinitelyTyped and only searches package names. It does not search bundled types or package descriptions.
 - [yarnpkg]'s search. This shows small "TS" icons next to packages with type declarations, either bundled or on DT. It does not surface a filter to search only packages with type declarations, however.
 - [pikapkg] lets you search packages with a [`has:types`][pikasearch] filter. This only searches bundled typings; it does not consider types on DT.
+- The yarn [TypesScript plugin][yarn-ts] automatically installs `@types` when you `yarn add` a package that has them.
 
 ## Support
 
@@ -83,3 +84,4 @@ This uses Algolia's [npm search][2], the same search that you find on [yarnpkg].
 [pikasearch]: https://www.pika.dev/search?q=has%3Atypes%20moment
 [ets]: https://effectivetypescript.com/
 [Chapter 6]: https://effectivetypescript.com/#Chapter-6-Types-Declarations-and-types
+[yarn-ts]: https://github.com/yarnpkg/berry/tree/master/packages/plugin-typescript
