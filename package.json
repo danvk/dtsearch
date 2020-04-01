@@ -19,6 +19,7 @@
     "@types/chalk": "^2.2.0",
     "@types/he": "^1.1.1",
     "@types/lodash": "^4.14.149",
+    "@types/node": "^13.9.8",
     "typescript": "^3.8.3"
   },
   "dependencies": {
