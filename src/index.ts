@@ -1,11 +1,12 @@
+import algoliasearch from 'algoliasearch';
 import chalk from 'chalk';
 import {program} from 'commander';
 import {decode} from 'he';
 import solver from 'javascript-lp-solver/src/solver';
 import _ from 'lodash';
 import moment from 'moment';
-import fetch from 'node-fetch';
-import { AlgoliaResponse, Hit, Description } from './response';
+import { Hit, Description } from './response';
+import { API_KEY, APP_ID } from './key';
 
 const version = require('../package.json').version;
 
@@ -22,7 +23,6 @@ program
   .option('-u, --untyped', 'Search all packages, even those without type declarations.')
   .parse(process.argv);
 
-const SEARCH_ENDPOINT = 'https://ofcncog2cu-dsn.algolia.net/1/indexes/npm-search'
 const ATTRIBUTES = [
   'types',
   'downloadsLast30Days',
@@ -34,19 +34,22 @@ const ATTRIBUTES = [
   'homepage',
   'repository',
 ];
-const filters = {
+const FILTERS = {
   default: 'types.ts:"definitely-typed" OR types.ts:"included"',
   dt: 'types.ts:"definitely-typed"',
   bundled: 'types.ts:"included"',
 };
 const PARAMS = {
   hitsPerPage: 20,
-  filters: filters.default,
+  filters: FILTERS.default,
   attributes: ATTRIBUTES.join(','),
   'x-algolia-agent': 'Algolia for vanilla JavaScript (lite) 3.27.1',
   'x-algolia-application-id': 'OFCNCOG2CU',
   'x-algolia-api-key': 'f54e21fa3a2a0160595bb058179bfb1e',
 };
+
+const client = algoliasearch(APP_ID, API_KEY);
+const index = client.initIndex('npm-search');
 
 interface Column {
   header: string;
@@ -294,48 +297,37 @@ function applyFlags() {
     throw new Error(`May only specify one of ${flags}`);
   }
 
+  let filters: string | undefined = FILTERS.default;
   if (program.untyped) {
-    delete PARAMS.filters;
+    filters = undefined;
   } else if (program.dt) {
-    PARAMS.filters = filters.dt;
+    filters = FILTERS.dt;
   } else if (program.bundled) {
-    PARAMS.filters = filters.bundled;
+    filters = FILTERS.bundled;
   }
+
+  return {filters};
 }
 
 (async () => {
   const query = program.args.join(' ');
 
-  applyFlags();
+  const {filters} = applyFlags();
 
-  // Overfetch a bit in case there are @types results.
   const {num} = program;
-  PARAMS.hitsPerPage = Math.floor(num * 1.5);
-
-  const params = new URLSearchParams();
-  for (const [k, v] of Object.entries(PARAMS)) {
-    params.set(k, '' + v);
-  }
-  params.set('query', query);
-  const qs = params.toString();
-  const url = `${SEARCH_ENDPOINT}?${qs}`;
-
-  if (program.debug) {
-    console.log('Algolia query params:', params);
-    console.log('Fetching', url);
-  }
 
   const startMs = Date.now();
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
+  const result = await index.search<Hit>(query, {
+    analyticsTags: ['dtsearch'],
+    hitsPerPage: Math.floor(num * 1.5),  // Overfetch a bit in case there are @types results.
+    filters,
+    attributesToRetrieve: ATTRIBUTES,
+  });
   const elapsedMs = Date.now() - startMs;
   if (program.debug) {
     console.log('Algolia responded in', elapsedMs, 'ms');
   }
 
-  const result: AlgoliaResponse = await response.json();
   let hits = result.hits.filter(hit => !hit.objectID.startsWith('@types/'));
   if (hits.length === 0) {
     console.log('No results. Try dtsearch -u to include packages without types.');

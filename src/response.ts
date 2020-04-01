@@ -1,15 +1,3 @@
-export interface AlgoliaResponse {
-  hits: Hit[];
-  nbHits: number;
-  page: number;
-  nbPages: number;
-  hitsPerPage: number;
-  exhaustiveNbHits: boolean;
-  query: string;
-  params: string;
-  processingTimeMS: number;
-}
-
 export interface Hit {
   downloadsLast30Days: number;
   humanDownloadsLast30Days: string;
