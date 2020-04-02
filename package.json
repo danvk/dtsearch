@@ -1,6 +1,6 @@
 {
   "name": "dtsearch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Find packages with TypeScript types, either bundled or on Definitely Typed",
   "keywords": [
     "definitelytyped",
