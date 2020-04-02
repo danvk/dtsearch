@@ -34,18 +34,16 @@ const ATTRIBUTES = [
   'homepage',
   'repository',
 ];
+
+// Types can come from DT or be bundled. We're never interested in @types packages themselves.
+const IS_DT = 'types.ts:"definitely-typed"';
+const IS_INCLUDED = 'types.ts:"included"';
+const NOT_TYPES = 'NOT owner.name:DefinitelyTyped';
 const FILTERS = {
-  default: 'types.ts:"definitely-typed" OR types.ts:"included"',
-  dt: 'types.ts:"definitely-typed"',
-  bundled: 'types.ts:"included"',
-};
-const PARAMS = {
-  hitsPerPage: 20,
-  filters: FILTERS.default,
-  attributes: ATTRIBUTES.join(','),
-  'x-algolia-agent': 'Algolia for vanilla JavaScript (lite) 3.27.1',
-  'x-algolia-application-id': 'OFCNCOG2CU',
-  'x-algolia-api-key': 'f54e21fa3a2a0160595bb058179bfb1e',
+  default: `(${IS_DT} OR ${IS_INCLUDED}) AND ${NOT_TYPES}`,
+  dt: IS_DT,
+  bundled: `${IS_INCLUDED} AND ${NOT_TYPES}`,
+  untyped: NOT_TYPES,
 };
 
 const client = algoliasearch(APP_ID, API_KEY);
@@ -240,7 +238,7 @@ function tuple<T extends any[]>(...t: T): T {
   return t;
 }
 
-function printTable(rows: string[][], hits: Hit[]) {
+function printTable(rows: string[][], hits: readonly Hit[]) {
   const cols = columns.map((c, j) => [
     c.header.toUpperCase(), ...rows.map(r => r[j])
   ]);
@@ -299,7 +297,7 @@ function applyFlags() {
 
   let filters: string | undefined = FILTERS.default;
   if (program.untyped) {
-    filters = undefined;
+    filters = FILTERS.untyped;
   } else if (program.dt) {
     filters = FILTERS.dt;
   } else if (program.bundled) {
@@ -319,7 +317,7 @@ function applyFlags() {
   const startMs = Date.now();
   const result = await index.search<Hit>(query, {
     analyticsTags: ['dtsearch'],
-    hitsPerPage: Math.floor(num * 1.5),  // Overfetch a bit in case there are @types results.
+    hitsPerPage: num,
     filters,
     attributesToRetrieve: ATTRIBUTES,
   });
@@ -328,7 +326,7 @@ function applyFlags() {
     console.log('Algolia responded in', elapsedMs, 'ms');
   }
 
-  let hits = result.hits.filter(hit => !hit.objectID.startsWith('@types/'));
+  const {hits} = result;
   if (hits.length === 0) {
     console.log('No results. Try dtsearch -u to include packages without types.');
     return;
@@ -339,7 +337,6 @@ function applyFlags() {
     console.log(result);
   }
 
-  hits = hits.slice(0, num);
   const table = hits.map(formatResult);
   printTable(table, hits);
 
