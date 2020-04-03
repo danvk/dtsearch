@@ -16,6 +16,7 @@ program
   .option('--npm', 'Output npm install commands')
   .option('-y, --yarn', 'Output yarn add commands')
   .option('-n, --num <number>', 'Maximum number of results to show', Number, 10)
+  .option('-e, --exact', 'Save exact version')
   .option('--repo', 'Show repo URL, even if package specifies a homepage')
   .option('--debug', 'Enable debug logging')
   .option('--bundled', 'Only show packages with bundled types')
@@ -145,11 +146,11 @@ const columns: Column[] = [
 ];
 
 function makeInstallCommand(cmd: string, {types, objectID}: Hit): string {
-  const install = `${cmd} ${objectID}`;
+  const install = `${cmd} ${program.exact ? '-E ' : ''}${objectID}`;
   if (types.ts === 'included') {
     return install;
   } else if (types.ts === 'definitely-typed') {
-    return `${install} && ${cmd} -D ${types.definitelyTyped}`;
+    return `${install} && ${cmd} -D${program.exact ? 'E' : ''} ${types.definitelyTyped}`;
   }
   return '';
 }
