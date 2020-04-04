@@ -7,6 +7,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import { Hit, Description } from './response';
 import { API_KEY, APP_ID } from './key';
+import { addStars } from './github';
 
 const version = require('../package.json').version;
 
@@ -17,6 +18,7 @@ program
   .option('-y, --yarn', 'Output yarn add commands')
   .option('-n, --num <number>', 'Maximum number of results to show', Number, 10)
   .option('--repo', 'Show repo URL, even if package specifies a homepage')
+  .option('-s, --stars', 'Show GitHub star counts (may add latency)')
   .option('--debug', 'Enable debug logging')
   .option('--bundled', 'Only show packages with bundled types')
   .option('--dt', 'Only show packages with types on DefinitelyTyped (@types)')
@@ -70,6 +72,12 @@ const columns: Column[] = [
     header: 'pop',
     format: h => h.popular ? '🔥' : '',
     importance: 2,
+  },
+  {
+    header: 'stars',
+    format: h => h.stars ? '' + h.stars : '',
+    importance: -1,
+    align: 'right',
   },
   {
     header: 'name',
@@ -295,6 +303,10 @@ function applyFlags() {
     throw new Error(`May only specify one of ${flags}`);
   }
 
+  if (program.stars) {
+    adjustImportance('stars', 1000);
+  }
+
   let filters: string | undefined = FILTERS.default;
   if (program.untyped) {
     filters = FILTERS.untyped;
@@ -335,6 +347,11 @@ function applyFlags() {
   if (program.debug) {
     console.log(`Got ${result.hits.length} results, pared down to ${hits.length}`);
     console.log(result);
+    console.log(result.hits[0]);
+  }
+
+  if (program.stars) {
+    await addStars(hits);
   }
 
   const table = hits.map(formatResult);

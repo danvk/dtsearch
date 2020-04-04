@@ -9,6 +9,7 @@ export interface Hit {
   objectID: string;
   homepage: string | null;
   repository: Repository | null;
+  stars?: number;
   _highlightResult: HighlightResult;
 }
 
