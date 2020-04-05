@@ -146,6 +146,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-13.9.8.tgz#09976420fc80a7a00bf40680c63815ed8c7616f4"
   integrity sha512-1WgO8hsyHynlx7nhP1kr0OFzsgKz5XDQL+Lfc3b1Q3qIln/n8cKD4m09NJ0+P1Rq7Zgnc7N0+SsMnoD1rEb0kA==
 
+"@types/numeral@^0.0.26":
+  version "0.0.26"
+  resolved "https://registry.yarnpkg.com/@types/numeral/-/numeral-0.0.26.tgz#cfab9842ef9349ce714b06722940ca7ebf8a6298"
+  integrity sha512-DwCsRqeOWopdEsm5KLTxKVKDSDoj+pzZD1vlwu1GQJ6IF3RhjuleYlRwyRH6MJLGaf3v8wFTnC6wo3yYfz0bnA==
+
 algoliasearch@^4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/algoliasearch/-/algoliasearch-4.1.0.tgz#d422ac0d115497021a6c96f4b9747dbaa63f164a"
@@ -266,6 +271,11 @@ node-fetch@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
   integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
+
+numeral@^2.0.6:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/numeral/-/numeral-2.0.6.tgz#4ad080936d443c2561aed9f2197efffe25f4e506"
+  integrity sha1-StCAk21EPCVhrtnyGX7//iX05QY=
 
 supports-color@^7.1.0:
   version "7.1.0"

@@ -34,7 +34,7 @@ export async function addStars(hits: readonly Hit[]) {
   // TODO(danvk): de-dupe repos
   const repos = hits.map(extractGitHubRepo);
   const fragments = repos.map((repo, i) => {
-    if (!repo) {
+    if (repo === undefined) {
       return '';
     }
 

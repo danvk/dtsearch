@@ -5,6 +5,8 @@ import {decode} from 'he';
 import solver from 'javascript-lp-solver/src/solver';
 import _ from 'lodash';
 import moment from 'moment';
+import numeral from 'numeral';
+
 import { Hit, Description } from './response';
 import { API_KEY, APP_ID } from './key';
 import { addStars } from './github';
@@ -75,7 +77,7 @@ const columns: Column[] = [
   },
   {
     header: 'stars',
-    format: h => h.stars ? '' + h.stars : '',
+    format: h => h.stars !== undefined ? numeral(h.stars).format('0,0') : '',
     importance: -1,
     align: 'right',
   },
@@ -340,7 +342,7 @@ function applyFlags() {
 
   const {hits} = result;
   if (hits.length === 0) {
-    console.log('No results. Try dtsearch -u to include packages without types.');
+    console.log(`No results for "${query}". Try dtsearch -u to include packages without types.`);
     return;
   }
 

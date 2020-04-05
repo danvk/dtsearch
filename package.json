@@ -1,6 +1,6 @@
 {
   "name": "dtsearch",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Find packages with TypeScript types, either bundled or on Definitely Typed",
   "keywords": [
     "definitelytyped",
@@ -21,6 +21,7 @@
     "@types/lodash": "^4.14.149",
     "@types/node": "^13.9.8",
     "@types/node-fetch": "^2.5.5",
+    "@types/numeral": "^0.0.26",
     "typescript": "^3.8.3"
   },
   "dependencies": {
@@ -31,6 +32,7 @@
     "javascript-lp-solver": "^0.4.24",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "numeral": "^2.0.6"
   }
 }
