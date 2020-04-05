@@ -62,7 +62,21 @@ This uses Algolia's [npm search][2], the same search that you find on [yarnpkg].
 - `--dt` Only show packages with types on DefinitelyTyped (@types)
 - `-u`, `--untyped` Search all packages, even those without type declarations.
 - `--repo` Show repo URLs, even if package specifies a homepage
+- `--stars` Show GitHub star counts. This is a useful quality signal but it does slow `dtsearch` down, so it is off by default.
 - `--debug` Enable debug logging
+
+## Development
+
+Run `tsc --watch` in the background to iterate:
+
+    yarn
+    yarn tsc --watch &
+    ./bin/dtsearch --debug args
+
+To publish a new version:
+
+    yarn tsc
+    npm publish
 
 ## Related Work
 
