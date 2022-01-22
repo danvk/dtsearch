@@ -32,7 +32,7 @@
     "javascript-lp-solver": "^0.4.24",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.1.1",
     "numeral": "^2.0.6"
   }
 }
